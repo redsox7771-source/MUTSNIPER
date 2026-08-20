@@ -37,3 +37,21 @@ export interface ListCardResult {
   listing_id: string | null
   message: string
 }
+
+export interface RecentSale {
+  listing_id: string
+  price: number
+  sold_at: string
+}
+
+export interface ActiveListing {
+  listing_id: string
+  buy_now: number
+  current_bid: number
+  expires_at: string
+}
+
+export interface CardMarket {
+  recent_sales: RecentSale[]
+  active_listings: ActiveListing[]
+}

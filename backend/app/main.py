@@ -81,6 +81,17 @@ async def get_price_history(card_id: str, hours: int = 24):
         return await repository.price_history(session, card_id, hours)
 
 
+@app.get("/cards/{card_id}/market", response_model=schemas.CardMarketOut)
+async def get_card_market(card_id: str, hours: int = 72):
+    async with SessionLocal() as session:
+        sales = await repository.recent_sales(session, card_id, hours)
+        active = await repository.active_listings_for_card(session, card_id)
+    return schemas.CardMarketOut(
+        recent_sales=[schemas.RecentSaleOut(**s) for s in sales],
+        active_listings=[schemas.ActiveListingOut(**a) for a in active],
+    )
+
+
 @app.websocket("/ws/feed")
 async def ws_feed(websocket: WebSocket) -> None:
     await ws_manager.connect(websocket)

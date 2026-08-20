@@ -1,4 +1,4 @@
-import type { BuyResult, ListCardResult, OwnedCard, Snipe } from './types'
+import type { BuyResult, CardMarket, ListCardResult, OwnedCard, Snipe } from './types'
 
 export async function fetchSnipes(params: { minMarginPct?: number; minOvr?: number } = {}): Promise<Snipe[]> {
   const search = new URLSearchParams()
@@ -40,6 +40,12 @@ export async function listCard(
     }),
   })
   if (!res.ok) throw new Error(`List failed: ${res.status}`)
+  return res.json()
+}
+
+export async function fetchCardMarket(cardId: string): Promise<CardMarket> {
+  const res = await fetch(`/api/cards/${cardId}/market`)
+  if (!res.ok) throw new Error(`Failed to load card market: ${res.status}`)
   return res.json()
 }
 

@@ -1,18 +1,6 @@
 import { useState } from 'react'
 import type { Snipe } from '../types'
-
-function timeRemaining(expiresAt: string): string {
-  const ms = new Date(expiresAt).getTime() - Date.now()
-  if (ms <= 0) return 'Ended'
-  const totalSeconds = Math.floor(ms / 1000)
-  const h = Math.floor(totalSeconds / 3600)
-  const m = Math.floor((totalSeconds % 3600) / 60)
-  return h > 0 ? `${h}h ${m}m` : `${m}m`
-}
-
-function formatCoins(n: number): string {
-  return n.toLocaleString('en-US')
-}
+import { formatCoins, timeRemaining } from '../format'
 
 interface Props {
   snipe: Snipe

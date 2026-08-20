@@ -196,3 +196,53 @@ async def list_purchases(session: AsyncSession, limit: int = 100) -> list[models
         select(models.Purchase).order_by(desc(models.Purchase.purchased_at)).limit(limit)
     )
     return list(rows.scalars())
+
+
+# A listing that stops being seen well before its own expires_at almost
+# certainly sold or was pulled - it didn't just run out the clock. This is
+# an inference, not a confirmed-sale record from EA (nothing in the schema
+# marks a listing "sold"), so callers should present it as such.
+_GRACE_PERIOD = timedelta(minutes=5)
+
+
+async def recent_sales(session: AsyncSession, card_id: str, hours: int, limit: int = 20) -> list[dict]:
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(hours=hours)
+    rows = await session.execute(
+        select(models.Listing)
+        .where(
+            models.Listing.card_id == card_id,
+            models.Listing.last_seen >= cutoff,
+            models.Listing.last_seen <= now - _GRACE_PERIOD,
+            models.Listing.expires_at > models.Listing.last_seen,
+        )
+        .order_by(desc(models.Listing.last_seen))
+        .limit(limit)
+    )
+    return [
+        {"listing_id": row.listing_id, "price": row.buy_now, "sold_at": row.last_seen}
+        for row in rows.scalars()
+    ]
+
+
+async def active_listings_for_card(session: AsyncSession, card_id: str, limit: int = 20) -> list[dict]:
+    now = datetime.now(timezone.utc)
+    rows = await session.execute(
+        select(models.Listing)
+        .where(
+            models.Listing.card_id == card_id,
+            models.Listing.expires_at > now,
+            models.Listing.last_seen >= now - _GRACE_PERIOD,
+        )
+        .order_by(models.Listing.expires_at)
+        .limit(limit)
+    )
+    return [
+        {
+            "listing_id": row.listing_id,
+            "buy_now": row.buy_now,
+            "current_bid": row.current_bid,
+            "expires_at": row.expires_at,
+        }
+        for row in rows.scalars()
+    ]

@@ -204,6 +204,76 @@ body {
   color: var(--text-dim);
 }
 
+.card-name-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.card-name-btn:hover .card-name {
+  color: var(--accent);
+}
+
+.row-expanded {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.market-panel-row td {
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.market-panel {
+  display: flex;
+  gap: 24px;
+  padding: 12px 16px;
+  background: var(--bg);
+}
+
+.market-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.market-col h4 {
+  margin: 0 0 6px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.market-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.market-list li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-list-meta {
+  color: var(--text-dim);
+}
+
+.market-panel-empty {
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 4px 0;
+}
+
 .margin-pct {
   display: block;
   color: var(--green);

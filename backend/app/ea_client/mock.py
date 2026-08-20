@@ -106,7 +106,12 @@ class MockEAClient(EAClient):
         now = datetime.now(timezone.utc)
 
         for listing_id in list(self._active):
-            if self._active[listing_id].expires_at <= now:
+            listing = self._active[listing_id]
+            if listing.expires_at <= now:
+                del self._active[listing_id]
+            # Simulate other buyers snapping up listings before they expire,
+            # so recent-sales inference has something real to detect.
+            elif self._rng.random() < 0.05:
                 del self._active[listing_id]
 
         for _ in range(self._rng.randint(0, 3)):

@@ -64,3 +64,21 @@ class PurchaseOut(BaseModel):
     success: bool
     message: str
     purchased_at: datetime
+
+
+class RecentSaleOut(BaseModel):
+    listing_id: str
+    price: int
+    sold_at: datetime
+
+
+class ActiveListingOut(BaseModel):
+    listing_id: str
+    buy_now: int
+    current_bid: int
+    expires_at: datetime
+
+
+class CardMarketOut(BaseModel):
+    recent_sales: list[RecentSaleOut]
+    active_listings: list[ActiveListingOut]
