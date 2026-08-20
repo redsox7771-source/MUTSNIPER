@@ -11,9 +11,14 @@ export function timeRemaining(expiresAt: string): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
-export function cardSearchUrl(cardName: string, ovr: number, program: string): string {
-  const query = `Madden 27 ${cardName} ${ovr} OVR ${program} ratings attributes`
-  return `https://www.google.com/search?q=${encodeURIComponent(query)}`
+// mut.gg's individual card pages are /players/{their-internal-id}-{slug}/ -
+// that internal id isn't something our card data has, so we can't link
+// straight to one reliably. Their list page at /players/ is real and
+// always valid though, so we land there with a best-effort search param:
+// if it filters, great; if the param name is wrong, it just shows the
+// unfiltered list - either way it's a genuine mut.gg page, never a 404.
+export function cardSearchUrl(cardName: string): string {
+  return `https://www.mut.gg/players/?search=${encodeURIComponent(cardName)}`
 }
 
 export function ovrBadgeClass(ovr: number): string {

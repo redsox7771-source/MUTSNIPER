@@ -20,11 +20,11 @@ function CardMarketPanel({ card }: { card: OwnedCard }) {
       <div className="market-panel-header">
         <a
           className="card-detail-link"
-          href={cardSearchUrl(card.card_name, card.ovr, card.program)}
+          href={cardSearchUrl(card.card_name)}
           target="_blank"
           rel="noopener noreferrer"
         >
-          Full card details &amp; attributes ↗
+          View on MUT.GG ↗
         </a>
       </div>
       {loading ? (
