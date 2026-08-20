@@ -7,6 +7,7 @@
   --green: #3ddc84;
   --red: #ff5c5c;
   --accent: #4d8dff;
+  --gold: #e8b83d;
 }
 
 * {
@@ -123,6 +124,20 @@ body {
   color: var(--text-dim);
   padding: 8px 10px;
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.snipe-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.snipe-table th.sortable:hover {
+  color: var(--text);
+}
+
+.sort-arrow {
+  color: var(--accent);
 }
 
 .snipe-table td {
@@ -133,6 +148,18 @@ body {
 
 .snipe-table tbody tr:hover {
   background: rgba(255, 255, 255, 0.03);
+}
+
+.col-ovr,
+.col-price,
+.col-margin,
+.col-time {
+  text-align: right;
+}
+
+.col-pin {
+  width: 28px;
+  text-align: center;
 }
 
 .card-name {
@@ -146,13 +173,52 @@ body {
   color: var(--text-dim);
 }
 
-.col-margin {
+.margin-pct {
+  display: block;
   color: var(--green);
   font-weight: 600;
 }
 
+.margin-coins {
+  display: block;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
 .col-time {
   color: var(--text-dim);
+}
+
+.pin-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.pin-btn:hover {
+  color: var(--gold);
+}
+
+.pin-btn--active {
+  color: var(--gold);
+}
+
+.row-pinned {
+  background: rgba(232, 184, 61, 0.06);
+}
+
+.section-divider td {
+  padding: 5px 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border);
 }
 
 .empty-state {

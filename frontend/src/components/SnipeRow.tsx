@@ -13,9 +13,17 @@ function formatCoins(n: number): string {
   return n.toLocaleString('en-US')
 }
 
-export function SnipeRow({ snipe }: { snipe: Snipe }) {
+interface Props {
+  snipe: Snipe
+  pinned: boolean
+  onTogglePin: () => void
+}
+
+export function SnipeRow({ snipe, pinned, onTogglePin }: Props) {
+  const coinProfit = snipe.est_value - snipe.buy_now
+
   return (
-    <tr>
+    <tr className={pinned ? 'row-pinned' : undefined}>
       <td className="col-card">
         <span className="card-name">{snipe.card_name}</span>
         <span className="card-meta">
@@ -25,8 +33,21 @@ export function SnipeRow({ snipe }: { snipe: Snipe }) {
       <td className="col-ovr">{snipe.ovr}</td>
       <td className="col-price">{formatCoins(snipe.buy_now)}</td>
       <td className="col-price">{formatCoins(Math.round(snipe.est_value))}</td>
-      <td className="col-margin">{(snipe.margin_pct * 100).toFixed(0)}%</td>
+      <td className="col-margin">
+        <span className="margin-pct">{(snipe.margin_pct * 100).toFixed(0)}%</span>
+        <span className="margin-coins">+{formatCoins(Math.round(coinProfit))}</span>
+      </td>
       <td className="col-time">{timeRemaining(snipe.expires_at)}</td>
+      <td className="col-pin">
+        <button
+          className={`pin-btn${pinned ? ' pin-btn--active' : ''}`}
+          onClick={onTogglePin}
+          aria-label={pinned ? 'Unpin' : 'Pin'}
+          title={pinned ? 'Unpin' : 'Pin to top'}
+        >
+          {pinned ? '★' : '☆'}
+        </button>
+      </td>
     </tr>
   )
 }
