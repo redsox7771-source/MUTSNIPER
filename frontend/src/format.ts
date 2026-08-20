@@ -11,6 +11,11 @@ export function timeRemaining(expiresAt: string): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
+export function cardSearchUrl(cardName: string, ovr: number, program: string): string {
+  const query = `Madden 27 ${cardName} ${ovr} OVR ${program} ratings attributes`
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`
+}
+
 export function ovrBadgeClass(ovr: number): string {
   if (ovr >= 99) return 'ovr-badge ovr-badge--elite'
   if (ovr >= 95) return 'ovr-badge ovr-badge--great'

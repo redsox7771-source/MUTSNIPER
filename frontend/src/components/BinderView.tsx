@@ -1,55 +1,70 @@
 import { useEffect, useState } from 'react'
 import type { CardMarket, OwnedCard } from '../types'
 import { fetchBinder, fetchCardMarket, listCard } from '../api'
-import { formatCoins, ovrBadgeClass, timeAgo, timeRemaining } from '../format'
+import { cardSearchUrl, formatCoins, ovrBadgeClass, timeAgo, timeRemaining } from '../format'
 
-function CardMarketPanel({ cardId }: { cardId: string }) {
+function CardMarketPanel({ card }: { card: OwnedCard }) {
   const [market, setMarket] = useState<CardMarket | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    fetchCardMarket(cardId)
+    fetchCardMarket(card.card_id)
       .then(setMarket)
       .catch(() => setError(true))
       .finally(() => setLoading(false))
-  }, [cardId])
-
-  if (loading) return <div className="market-panel-empty">Loading market…</div>
-  if (error || !market) return <div className="market-panel-empty">Couldn't load market data.</div>
+  }, [card.card_id])
 
   return (
     <div className="market-panel">
-      <div className="market-col">
-        <h4>Recently sold</h4>
-        {market.recent_sales.length === 0 ? (
-          <div className="market-panel-empty">No recent sales seen.</div>
-        ) : (
-          <ul className="market-list">
-            {market.recent_sales.map((sale) => (
-              <li key={sale.listing_id}>
-                <span>{formatCoins(sale.price)}</span>
-                <span className="market-list-meta">{timeAgo(sale.sold_at)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="market-panel-header">
+        <a
+          className="card-detail-link"
+          href={cardSearchUrl(card.card_name, card.ovr, card.program)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Full card details &amp; attributes ↗
+        </a>
       </div>
-      <div className="market-col">
-        <h4>Currently listed</h4>
-        {market.active_listings.length === 0 ? (
-          <div className="market-panel-empty">Nothing currently listed.</div>
-        ) : (
-          <ul className="market-list">
-            {market.active_listings.map((listing) => (
-              <li key={listing.listing_id}>
-                <span>{formatCoins(listing.buy_now || listing.current_bid)}</span>
-                <span className="market-list-meta">{timeRemaining(listing.expires_at)} left</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {loading ? (
+        <div className="market-panel-empty">Loading market…</div>
+      ) : error || !market ? (
+        <div className="market-panel-empty">Couldn't load market data.</div>
+      ) : (
+        <div className="market-cols">
+          <div className="market-col">
+            <h4>Recently sold</h4>
+            {market.recent_sales.length === 0 ? (
+              <div className="market-panel-empty">No recent sales seen.</div>
+            ) : (
+              <ul className="market-list">
+                {market.recent_sales.map((sale) => (
+                  <li key={sale.listing_id}>
+                    <span>{formatCoins(sale.price)}</span>
+                    <span className="market-list-meta">{timeAgo(sale.sold_at)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="market-col">
+            <h4>Currently listed</h4>
+            {market.active_listings.length === 0 ? (
+              <div className="market-panel-empty">Nothing currently listed.</div>
+            ) : (
+              <ul className="market-list">
+                {market.active_listings.map((listing) => (
+                  <li key={listing.listing_id}>
+                    <span>{formatCoins(listing.buy_now || listing.current_bid)}</span>
+                    <span className="market-list-meta">{timeRemaining(listing.expires_at)} left</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -146,7 +161,7 @@ function BinderRow({ card, onListed }: { card: OwnedCard; onListed: () => void }
       {expanded && (
         <tr className="market-panel-row">
           <td colSpan={6}>
-            <CardMarketPanel cardId={card.card_id} />
+            <CardMarketPanel card={card} />
           </td>
         </tr>
       )}
