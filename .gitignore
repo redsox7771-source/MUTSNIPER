@@ -4,4 +4,10 @@ __pycache__/
 .env
 *.db
 *.db-journal
-session.json
+.pytest_cache/
+
+node_modules/
+dist/
+*.tsbuildinfo
+
+*.egg-info/

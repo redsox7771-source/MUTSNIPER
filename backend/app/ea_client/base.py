@@ -34,3 +34,15 @@ class EAClient(ABC):
 
     @abstractmethod
     async def search_listings(self, filters: ListingFilter) -> list[Listing]: ...
+
+
+class EAAuthError(Exception):
+    """Raised when EA rejects the session (401) - token needs refreshing."""
+
+
+class EARateLimitError(Exception):
+    """Raised on 429 from EA."""
+
+
+class EAServerError(Exception):
+    """Raised on 5xx from EA."""
