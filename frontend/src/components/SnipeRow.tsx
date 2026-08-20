@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Snipe } from '../types'
-import { formatCoins, timeRemaining } from '../format'
+import { formatCoins, ovrBadgeClass, timeRemaining } from '../format'
 
 interface Props {
   snipe: Snipe
@@ -40,7 +40,9 @@ export function SnipeRow({ snipe, pinned, onTogglePin, onBuy }: Props) {
           {snipe.program} · {snipe.position}
         </span>
       </td>
-      <td className="col-ovr">{snipe.ovr}</td>
+      <td className="col-ovr">
+        <span className={ovrBadgeClass(snipe.ovr)}>{snipe.ovr}</span>
+      </td>
       <td className="col-price">{formatCoins(snipe.buy_now)}</td>
       <td className="col-price">{formatCoins(Math.round(snipe.est_value))}</td>
       <td className="col-margin">

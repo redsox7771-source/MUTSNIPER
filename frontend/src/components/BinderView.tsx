@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { CardMarket, OwnedCard } from '../types'
 import { fetchBinder, fetchCardMarket, listCard } from '../api'
-import { formatCoins, timeAgo, timeRemaining } from '../format'
+import { formatCoins, ovrBadgeClass, timeAgo, timeRemaining } from '../format'
 
 function CardMarketPanel({ cardId }: { cardId: string }) {
   const [market, setMarket] = useState<CardMarket | null>(null)
@@ -112,7 +112,9 @@ function BinderRow({ card, onListed }: { card: OwnedCard; onListed: () => void }
             </span>
           </button>
         </td>
-        <td className="col-ovr">{card.ovr}</td>
+        <td className="col-ovr">
+          <span className={ovrBadgeClass(card.ovr)}>{card.ovr}</span>
+        </td>
         <td className="col-price">{card.quantity}</td>
         <td className="col-list-price">
           <input

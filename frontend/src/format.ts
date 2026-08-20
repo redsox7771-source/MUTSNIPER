@@ -11,6 +11,12 @@ export function timeRemaining(expiresAt: string): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
+export function ovrBadgeClass(ovr: number): string {
+  if (ovr >= 99) return 'ovr-badge ovr-badge--elite'
+  if (ovr >= 95) return 'ovr-badge ovr-badge--great'
+  return 'ovr-badge'
+}
+
 export function timeAgo(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime()
   if (ms < 60_000) return 'just now'
