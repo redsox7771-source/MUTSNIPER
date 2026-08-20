@@ -11,9 +11,17 @@ from .ea_client.base import Listing as EAListing
 from .ea_client.base import PurchaseResult
 
 
+# How long a previously-active listing must go unseen, for a card this
+# poll actually searched, before we conclude it's really gone rather than
+# just missed by one poll cycle (pagination hiccup, transient API miss).
+_RECONCILE_GRACE = timedelta(seconds=60)
+
+
 async def upsert_listings(session: AsyncSession, listings: list[EAListing]) -> tuple[int, int]:
-    """Upsert a poll batch by listing_id, and log a price_point for every
-    sighting (new or existing) so the price model has continuous signal."""
+    """Upsert a poll batch by listing_id, log a price_point for every
+    sighting, and reconcile any previously-active listing for the same
+    cards that didn't show up this time: sold if it vanished before its
+    own expiry, cancelled if it reached expiry (or was pulled) unsold."""
     if not listings:
         return 0, 0
 
@@ -37,6 +45,7 @@ async def upsert_listings(session: AsyncSession, listings: list[EAListing]) -> t
                 expires_at=listing.expires_at,
                 first_seen=now,
                 last_seen=now,
+                status="active",
             )
         )
 
@@ -56,6 +65,26 @@ async def upsert_listings(session: AsyncSession, listings: list[EAListing]) -> t
                 source="listing_scan",
             )
         )
+
+    seen_ids = {listing.listing_id for listing in listings}
+    card_ids = {listing.card_id for listing in listings}
+    stale_active = await session.execute(
+        select(models.Listing).where(
+            models.Listing.card_id.in_(card_ids),
+            models.Listing.status == "active",
+            models.Listing.last_seen <= now - _RECONCILE_GRACE,
+        )
+    )
+    for row in stale_active.scalars():
+        if row.listing_id in seen_ids:
+            continue
+        # The last poll to see a still-active listing is always a few
+        # seconds before its exact expiry, just from poll timing - so
+        # "expires_at > last_seen" alone is true for nearly every listing,
+        # including ones that simply ran out the clock normally. Only
+        # count it as sold if there was meaningfully more time left
+        # (more than one reconcile window) when it disappeared.
+        row.status = "sold" if row.expires_at - row.last_seen > _RECONCILE_GRACE else "cancelled"
 
     await session.commit()
     return len(result.new), len(result.updated)
@@ -133,7 +162,7 @@ async def list_snipes(
         select(models.Snipe, models.Card, models.Listing)
         .join(models.Card, models.Card.card_id == models.Snipe.card_id)
         .join(models.Listing, models.Listing.listing_id == models.Snipe.listing_id)
-        .where(models.Snipe.margin_pct >= min_margin_pct)
+        .where(models.Snipe.margin_pct >= min_margin_pct, models.Listing.status == "active")
         .order_by(desc(models.Snipe.detected_at))
         .limit(limit)
     )
@@ -198,23 +227,17 @@ async def list_purchases(session: AsyncSession, limit: int = 100) -> list[models
     return list(rows.scalars())
 
 
-# A listing that stops being seen well before its own expires_at almost
-# certainly sold or was pulled - it didn't just run out the clock. This is
-# an inference, not a confirmed-sale record from EA (nothing in the schema
-# marks a listing "sold"), so callers should present it as such.
-_GRACE_PERIOD = timedelta(minutes=5)
-
-
 async def recent_sales(session: AsyncSession, card_id: str, hours: int, limit: int = 20) -> list[dict]:
-    now = datetime.now(timezone.utc)
-    cutoff = now - timedelta(hours=hours)
+    """Listings reconciled to status='sold' - see upsert_listings. This is
+    an inference from a listing disappearing before its own expiry, not a
+    confirmed-sale record from EA (its API doesn't expose one)."""
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
     rows = await session.execute(
         select(models.Listing)
         .where(
             models.Listing.card_id == card_id,
+            models.Listing.status == "sold",
             models.Listing.last_seen >= cutoff,
-            models.Listing.last_seen <= now - _GRACE_PERIOD,
-            models.Listing.expires_at > models.Listing.last_seen,
         )
         .order_by(desc(models.Listing.last_seen))
         .limit(limit)
@@ -226,14 +249,9 @@ async def recent_sales(session: AsyncSession, card_id: str, hours: int, limit: i
 
 
 async def active_listings_for_card(session: AsyncSession, card_id: str, limit: int = 20) -> list[dict]:
-    now = datetime.now(timezone.utc)
     rows = await session.execute(
         select(models.Listing)
-        .where(
-            models.Listing.card_id == card_id,
-            models.Listing.expires_at > now,
-            models.Listing.last_seen >= now - _GRACE_PERIOD,
-        )
+        .where(models.Listing.card_id == card_id, models.Listing.status == "active")
         .order_by(models.Listing.expires_at)
         .limit(limit)
     )

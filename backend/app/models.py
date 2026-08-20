@@ -31,6 +31,12 @@ class Listing(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     first_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # "active" while still seen in polls. When a previously-active listing
+    # stops showing up, it's reconciled to "sold" (disappeared before its
+    # own expires_at - someone bought it) or "cancelled" (reached its
+    # expiry, or was pulled, without a buyer) - see
+    # repository.upsert_listings.
+    status: Mapped[str] = mapped_column(String, default="active", index=True)
 
 
 class PricePoint(Base):
