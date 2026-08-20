@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Snipe } from './types'
-import { fetchSnipes, connectFeed, type ConnectionStatus as Status } from './api'
+import { fetchSnipes, connectFeed, buySnipe, type ConnectionStatus as Status } from './api'
 import { SnipeFeed, type SortKey, type SortDir } from './components/SnipeFeed'
 import { FilterBar } from './components/FilterBar'
 import { ConnectionStatus } from './components/ConnectionStatus'
+import { BinderView } from './components/BinderView'
 
 const PINNED_STORAGE_KEY = 'mutsniper.pinnedListingIds'
 
@@ -17,6 +18,7 @@ function loadPinned(): Set<string> {
 }
 
 export default function App() {
+  const [view, setView] = useState<'feed' | 'binder'>('feed')
   const [snipes, setSnipes] = useState<Snipe[]>([])
   const [status, setStatus] = useState<Status>('disconnected')
   const [paused, setPaused] = useState(false)
@@ -65,6 +67,20 @@ export default function App() {
     }
   }
 
+  const handleBuy = async (listingId: string): Promise<boolean> => {
+    const result = await buySnipe(listingId)
+    if (result.success) {
+      setSnipes((prev) => prev.filter((s) => s.listing_id !== listingId))
+      setPinnedIds((prev) => {
+        if (!prev.has(listingId)) return prev
+        const next = new Set(prev)
+        next.delete(listingId)
+        return next
+      })
+    }
+    return result.success
+  }
+
   const visible = useMemo(
     () => snipes.filter((s) => s.margin_pct >= minMarginPct && s.ovr >= minOvr),
     [snipes, minMarginPct, minOvr],
@@ -73,25 +89,43 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>mutsniper</h1>
+        <div className="header-left">
+          <h1>mutsniper</h1>
+          <nav className="view-tabs">
+            <button className={view === 'feed' ? 'view-tab view-tab--active' : 'view-tab'} onClick={() => setView('feed')}>
+              Feed
+            </button>
+            <button className={view === 'binder' ? 'view-tab view-tab--active' : 'view-tab'} onClick={() => setView('binder')}>
+              Binder
+            </button>
+          </nav>
+        </div>
         <ConnectionStatus status={status} paused={paused} onTogglePause={() => setPaused((p) => !p)} />
       </header>
-      <FilterBar
-        minMarginPct={minMarginPct}
-        minOvr={minOvr}
-        onChange={(next) => {
-          setMinMarginPct(next.minMarginPct)
-          setMinOvr(next.minOvr)
-        }}
-      />
-      <SnipeFeed
-        snipes={visible}
-        pinnedIds={pinnedIds}
-        onTogglePin={togglePinned}
-        sortKey={sortKey}
-        sortDir={sortDir}
-        onSort={handleSort}
-      />
+
+      {view === 'feed' ? (
+        <>
+          <FilterBar
+            minMarginPct={minMarginPct}
+            minOvr={minOvr}
+            onChange={(next) => {
+              setMinMarginPct(next.minMarginPct)
+              setMinOvr(next.minOvr)
+            }}
+          />
+          <SnipeFeed
+            snipes={visible}
+            pinnedIds={pinnedIds}
+            onTogglePin={togglePinned}
+            onBuy={handleBuy}
+            sortKey={sortKey}
+            sortDir={sortDir}
+            onSort={handleSort}
+          />
+        </>
+      ) : (
+        <BinderView />
+      )}
     </div>
   )
 }

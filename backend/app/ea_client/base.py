@@ -27,13 +27,59 @@ class Listing:
     expires_at: datetime
 
 
+@dataclass(frozen=True)
+class OwnedCard:
+    card_id: str
+    card_name: str
+    ovr: int
+    program: str
+    position: str
+    team: str
+    quantity: int
+    tradeable: bool
+
+
+@dataclass(frozen=True)
+class PurchaseResult:
+    listing_id: str
+    success: bool
+    price_paid: int
+    message: str
+
+
+@dataclass(frozen=True)
+class ListResult:
+    card_id: str
+    success: bool
+    listing_id: str | None
+    message: str
+
+
 class EAClient(ABC):
-    """Read-only access to auction house listings. No implementation of
-    this interface may perform a write request (bid, buy, list) against
-    EA - search_listings is the only method for a reason."""
+    """Auction house access for a single EA account.
+
+    search_listings and get_binder are read-only. buy_now and list_card
+    execute real purchases/listings against EA - these exist only for the
+    account owner's own explicit, human-triggered actions. They must
+    never be called autonomously (no auto-buying the moment a snipe is
+    detected) and must never be wired up for a pooled/linked friend's
+    account without that person separately and explicitly consenting to
+    write access, distinct from read-only pool participation.
+    """
 
     @abstractmethod
     async def search_listings(self, filters: ListingFilter) -> list[Listing]: ...
+
+    @abstractmethod
+    async def get_binder(self) -> list[OwnedCard]: ...
+
+    @abstractmethod
+    async def buy_now(self, listing_id: str) -> PurchaseResult: ...
+
+    @abstractmethod
+    async def list_card(
+        self, card_id: str, buy_now_price: int, start_bid: int, duration_seconds: int
+    ) -> ListResult: ...
 
 
 class EAAuthError(Exception):

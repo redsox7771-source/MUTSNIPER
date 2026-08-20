@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Snipe } from '../types'
 
 function timeRemaining(expiresAt: string): string {
@@ -17,10 +18,31 @@ interface Props {
   snipe: Snipe
   pinned: boolean
   onTogglePin: () => void
+  onBuy: (listingId: string) => Promise<boolean>
 }
 
-export function SnipeRow({ snipe, pinned, onTogglePin }: Props) {
+export function SnipeRow({ snipe, pinned, onTogglePin, onBuy }: Props) {
+  const [buying, setBuying] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const coinProfit = snipe.est_value - snipe.buy_now
+
+  const handleBuy = async () => {
+    const ok = window.confirm(
+      `Buy ${snipe.card_name} (${snipe.ovr} OVR) now for ${formatCoins(snipe.buy_now)} coins?`,
+    )
+    if (!ok) return
+
+    setBuying(true)
+    setError(null)
+    try {
+      const success = await onBuy(snipe.listing_id)
+      if (!success) setError('Purchase failed')
+    } catch {
+      setError('Purchase failed')
+    } finally {
+      setBuying(false)
+    }
+  }
 
   return (
     <tr className={pinned ? 'row-pinned' : undefined}>
@@ -38,6 +60,12 @@ export function SnipeRow({ snipe, pinned, onTogglePin }: Props) {
         <span className="margin-coins">+{formatCoins(Math.round(coinProfit))}</span>
       </td>
       <td className="col-time">{timeRemaining(snipe.expires_at)}</td>
+      <td className="col-buy">
+        <button className="buy-btn" onClick={handleBuy} disabled={buying}>
+          {buying ? 'Buying…' : 'Buy'}
+        </button>
+        {error && <span className="row-error">{error}</span>}
+      </td>
       <td className="col-pin">
         <button
           className={`pin-btn${pinned ? ' pin-btn--active' : ''}`}

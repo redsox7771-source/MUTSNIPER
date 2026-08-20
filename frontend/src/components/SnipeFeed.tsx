@@ -8,6 +8,7 @@ interface Props {
   snipes: Snipe[]
   pinnedIds: Set<string>
   onTogglePin: (listingId: string) => void
+  onBuy: (listingId: string) => Promise<boolean>
   sortKey: SortKey
   sortDir: SortDir
   onSort: (key: SortKey) => void
@@ -44,7 +45,7 @@ const HEADERS: { key: SortKey; label: string; className: string }[] = [
   { key: 'time_left', label: 'Time left', className: 'col-time' },
 ]
 
-export function SnipeFeed({ snipes, pinnedIds, onTogglePin, sortKey, sortDir, onSort }: Props) {
+export function SnipeFeed({ snipes, pinnedIds, onTogglePin, onBuy, sortKey, sortDir, onSort }: Props) {
   if (snipes.length === 0) {
     return <div className="empty-state">No snipes yet — watching the market.</div>
   }
@@ -75,6 +76,7 @@ export function SnipeFeed({ snipes, pinnedIds, onTogglePin, sortKey, sortDir, on
               {sortKey === h.key && <span className="sort-arrow">{sortDir === 'asc' ? ' ▲' : ' ▼'}</span>}
             </th>
           ))}
+          <th className="col-buy" />
           <th className="col-pin" />
         </tr>
       </thead>
@@ -82,18 +84,18 @@ export function SnipeFeed({ snipes, pinnedIds, onTogglePin, sortKey, sortDir, on
         {pinned.length > 0 && (
           <>
             <tr className="section-divider">
-              <td colSpan={7}>Pinned · by coin profit</td>
+              <td colSpan={8}>Pinned · by coin profit</td>
             </tr>
             {pinned.map((s) => (
-              <SnipeRow key={s.listing_id} snipe={s} pinned onTogglePin={() => onTogglePin(s.listing_id)} />
+              <SnipeRow key={s.listing_id} snipe={s} pinned onTogglePin={() => onTogglePin(s.listing_id)} onBuy={onBuy} />
             ))}
             <tr className="section-divider">
-              <td colSpan={7}>All snipes</td>
+              <td colSpan={8}>All snipes</td>
             </tr>
           </>
         )}
         {rest.map((s) => (
-          <SnipeRow key={s.listing_id} snipe={s} pinned={false} onTogglePin={() => onTogglePin(s.listing_id)} />
+          <SnipeRow key={s.listing_id} snipe={s} pinned={false} onTogglePin={() => onTogglePin(s.listing_id)} onBuy={onBuy} />
         ))}
       </tbody>
     </table>

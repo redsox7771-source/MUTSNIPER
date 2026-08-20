@@ -1,4 +1,4 @@
-import type { Snipe } from './types'
+import type { BuyResult, ListCardResult, OwnedCard, Snipe } from './types'
 
 export async function fetchSnipes(params: { minMarginPct?: number; minOvr?: number } = {}): Promise<Snipe[]> {
   const search = new URLSearchParams()
@@ -6,6 +6,40 @@ export async function fetchSnipes(params: { minMarginPct?: number; minOvr?: numb
   if (params.minOvr) search.set('min_ovr', String(params.minOvr))
   const res = await fetch(`/api/snipes?${search.toString()}`)
   if (!res.ok) throw new Error(`Failed to load snipes: ${res.status}`)
+  return res.json()
+}
+
+export async function buySnipe(listingId: string): Promise<BuyResult> {
+  const res = await fetch(`/api/snipes/${listingId}/buy`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirm: true }),
+  })
+  if (!res.ok) throw new Error(`Buy failed: ${res.status}`)
+  return res.json()
+}
+
+export async function fetchBinder(): Promise<OwnedCard[]> {
+  const res = await fetch('/api/binder')
+  if (!res.ok) throw new Error(`Failed to load binder: ${res.status}`)
+  return res.json()
+}
+
+export async function listCard(
+  cardId: string,
+  body: { buyNowPrice: number; startBid: number; durationSeconds: number },
+): Promise<ListCardResult> {
+  const res = await fetch(`/api/binder/${cardId}/list`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      buy_now_price: body.buyNowPrice,
+      start_bid: body.startBid,
+      duration_seconds: body.durationSeconds,
+      confirm: true,
+    }),
+  })
+  if (!res.ok) throw new Error(`List failed: ${res.status}`)
   return res.json()
 }
 

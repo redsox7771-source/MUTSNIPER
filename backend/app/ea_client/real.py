@@ -7,7 +7,17 @@ from string import Template
 import httpx
 
 from ..config import Settings
-from .base import EAAuthError, EAClient, EARateLimitError, EAServerError, Listing, ListingFilter
+from .base import (
+    EAAuthError,
+    EAClient,
+    EARateLimitError,
+    EAServerError,
+    Listing,
+    ListingFilter,
+    ListResult,
+    OwnedCard,
+    PurchaseResult,
+)
 
 logger = logging.getLogger("mutsniper.ea_client.real")
 
@@ -67,6 +77,28 @@ class RealEAClient(EAClient):
         raise NotImplementedError(
             "RealEAClient._parse_response needs EA's actual response shape "
             "to map fields into Listing objects - see the class docstring."
+        )
+
+    async def get_binder(self) -> list[OwnedCard]:
+        raise NotImplementedError(
+            "get_binder needs a real captured request against EA's binder/"
+            "inventory endpoint - not discovered yet."
+        )
+
+    async def buy_now(self, listing_id: str) -> PurchaseResult:
+        raise NotImplementedError(
+            "buy_now needs a real captured purchase request. This is a write "
+            "action with real consequences (spends real coins) - it must be "
+            "built against an actual captured request, never guessed. See "
+            "the capture instructions given for the search endpoint; the "
+            "same applies here, but for an actual buy/bid action."
+        )
+
+    async def list_card(
+        self, card_id: str, buy_now_price: int, start_bid: int, duration_seconds: int
+    ) -> ListResult:
+        raise NotImplementedError(
+            "list_card needs a real captured listing request - not discovered yet."
         )
 
     async def aclose(self) -> None:

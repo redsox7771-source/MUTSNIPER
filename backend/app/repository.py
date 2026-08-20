@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from . import models, pricing
 from .dedupe import dedupe_listings
 from .ea_client.base import Listing as EAListing
+from .ea_client.base import PurchaseResult
 
 
 async def upsert_listings(session: AsyncSession, listings: list[EAListing]) -> tuple[int, int]:
@@ -169,3 +170,29 @@ async def price_history(session: AsyncSession, card_id: str, hours: int) -> list
         .order_by(models.PricePoint.observed_at)
     )
     return [{"price": row.price, "observed_at": row.observed_at, "source": row.source} for row in rows]
+
+
+async def get_listing_card_id(session: AsyncSession, listing_id: str) -> str | None:
+    listing = await session.get(models.Listing, listing_id)
+    return listing.card_id if listing else None
+
+
+async def record_purchase(session: AsyncSession, card_id: str, result: PurchaseResult) -> models.Purchase:
+    purchase = models.Purchase(
+        listing_id=result.listing_id,
+        card_id=card_id,
+        price_paid=result.price_paid,
+        success=result.success,
+        message=result.message,
+        purchased_at=datetime.now(timezone.utc),
+    )
+    session.add(purchase)
+    await session.commit()
+    return purchase
+
+
+async def list_purchases(session: AsyncSession, limit: int = 100) -> list[models.Purchase]:
+    rows = await session.execute(
+        select(models.Purchase).order_by(desc(models.Purchase.purchased_at)).limit(limit)
+    )
+    return list(rows.scalars())

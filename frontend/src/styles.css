@@ -44,6 +44,37 @@ body {
   text-transform: uppercase;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.view-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.view-tab {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.view-tab:hover {
+  color: var(--text);
+}
+
+.view-tab--active {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--text);
+}
+
 .status-bar {
   display: flex;
   align-items: center;
@@ -226,4 +257,56 @@ body {
   text-align: center;
   color: var(--text-dim);
   font-size: 13px;
+}
+
+.col-buy {
+  width: 80px;
+  text-align: center;
+  position: relative;
+}
+
+.buy-btn {
+  background: rgba(61, 220, 132, 0.1);
+  border: 1px solid var(--green);
+  color: var(--green);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.buy-btn:hover:not(:disabled) {
+  background: rgba(61, 220, 132, 0.2);
+}
+
+.buy-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.row-error {
+  display: block;
+  font-size: 10px;
+  color: var(--red);
+  margin-top: 2px;
+}
+
+.col-list-price {
+  text-align: right;
+}
+
+.list-price-input {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+  width: 110px;
+  text-align: right;
+}
+
+.list-price-input:disabled {
+  opacity: 0.4;
 }

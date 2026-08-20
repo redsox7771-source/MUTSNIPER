@@ -54,3 +54,15 @@ class Snipe(Base):
     margin: Mapped[float] = mapped_column(Float)
     margin_pct: Mapped[float] = mapped_column(Float)
     detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class Purchase(Base):
+    __tablename__ = "purchases"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    listing_id: Mapped[str] = mapped_column(String, index=True)
+    card_id: Mapped[str] = mapped_column(String, index=True)
+    price_paid: Mapped[int] = mapped_column(BigInteger)
+    success: Mapped[bool] = mapped_column()
+    message: Mapped[str] = mapped_column(String)
+    purchased_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
