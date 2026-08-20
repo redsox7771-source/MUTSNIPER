@@ -7,17 +7,27 @@ function formatCoins(n: number): string {
 }
 
 function BinderRow({ card, onListed }: { card: OwnedCard; onListed: () => void }) {
-  const [price, setPrice] = useState('')
+  const [startBid, setStartBid] = useState('')
+  const [buyNow, setBuyNow] = useState('')
   const [listing, setListing] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
   const handleList = async () => {
-    const buyNowPrice = Number(price)
-    if (!buyNowPrice || buyNowPrice <= 0) {
-      setMessage('Enter a price')
+    const startBidPrice = Number(startBid)
+    const buyNowPrice = Number(buyNow)
+
+    if (!startBidPrice || startBidPrice <= 0 || !buyNowPrice || buyNowPrice <= 0) {
+      setMessage('Enter both prices')
       return
     }
-    const ok = window.confirm(`List ${card.card_name} for ${formatCoins(buyNowPrice)} coins buy-now?`)
+    if (startBidPrice > buyNowPrice) {
+      setMessage('Start bid must be ≤ buy now')
+      return
+    }
+
+    const ok = window.confirm(
+      `List ${card.card_name}: start bid ${formatCoins(startBidPrice)}, buy now ${formatCoins(buyNowPrice)}?`,
+    )
     if (!ok) return
 
     setListing(true)
@@ -25,11 +35,12 @@ function BinderRow({ card, onListed }: { card: OwnedCard; onListed: () => void }
     try {
       const result = await listCard(card.card_id, {
         buyNowPrice,
-        startBid: Math.round(buyNowPrice * 0.5),
+        startBid: startBidPrice,
         durationSeconds: 3600,
       })
       if (result.success) {
-        setPrice('')
+        setStartBid('')
+        setBuyNow('')
         onListed()
       } else {
         setMessage(result.message)
@@ -55,9 +66,19 @@ function BinderRow({ card, onListed }: { card: OwnedCard; onListed: () => void }
         <input
           type="number"
           className="list-price-input"
-          placeholder="Buy now price"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          placeholder="Start bid"
+          value={startBid}
+          onChange={(e) => setStartBid(e.target.value)}
+          disabled={!card.tradeable || listing}
+        />
+      </td>
+      <td className="col-list-price">
+        <input
+          type="number"
+          className="list-price-input"
+          placeholder="Buy now"
+          value={buyNow}
+          onChange={(e) => setBuyNow(e.target.value)}
           disabled={!card.tradeable || listing}
         />
       </td>
@@ -99,7 +120,8 @@ export function BinderView() {
           <th className="col-card">Card</th>
           <th className="col-ovr">OVR</th>
           <th className="col-price">Qty</th>
-          <th className="col-list-price">List price</th>
+          <th className="col-list-price">Start bid</th>
+          <th className="col-list-price">Buy now</th>
           <th className="col-buy" />
         </tr>
       </thead>
